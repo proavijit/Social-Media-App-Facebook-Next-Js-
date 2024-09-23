@@ -1,83 +1,86 @@
-import { auth } from "@clerk/nextjs/server";
+"use client";
+
+import { useUser } from "@clerk/nextjs";
+import { CldUploadWidget } from "next-cloudinary";
 import Image from "next/image";
+import { useState } from "react";
+import { addPost } from "../lib/actions";
+import AddPostButton from "./AddPostButton";
 
 const AddPost = () => {
-  const { userId } = auth();
-  // console.log(userId);
+  const { user, isLoaded } = useUser();
+  const [desc, setDesc] = useState("");
+  const [img, setImg] = useState<any>();
 
-  // const testAction = async (formData: FormData) => {
-  //   "use server";
-  //   if (!userId) return;
-  //   const desc = formData.get("desc") as string;
-  //   try {
-  //     const res = await prisma.post.create({
-  //       data: {
-  //         userId: userId,
-  //         desc: desc,
-  //       },
-  //     });
-  //     console.log(res);
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // };
-
-  console.log(userId);
+  if (!isLoaded) {
+    return "Loading...";
+  }
 
   return (
     <div className="p-4 bg-white shadow-md rounded-lg flex gap-4 justify-between text-sm">
-      {/* AVATER */}
+      {/* AVATAR */}
       <Image
-        src="https://images.pexels.com/photos/28271465/pexels-photo-28271465/free-photo-of-a-church-tower-with-a-clock-on-it.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
+        src={user?.imageUrl || "/noAvatar.png"}
         alt=""
         width={48}
         height={48}
         className="w-12 h-12 object-cover rounded-full"
       />
       {/* POST */}
-      <div className=" flex-1">
+      <div className="flex-1">
         {/* TEXT INPUT */}
-        <form action="" className="flex gap-4 ">
+        <form
+          action={(formData) => addPost(formData, img?.secure_url || "")}
+          className="flex gap-4"
+        >
           <textarea
-            className="bg-slate-100 rounded-lg flex-1 p-2"
-            name="desc"
             placeholder="What's on your mind?"
-            id=""
+            className="flex-1 bg-slate-100 rounded-lg p-2"
+            name="desc"
+            onChange={(e) => setDesc(e.target.value)}
           ></textarea>
-          <Image
-            src="/emoji.png"
-            alt=""
-            width={20}
-            height={20}
-            className="w-4 h-4 sef cursor-pointer"
-          />
-          <button>Send</button>
-        </form>
-        {/* POST OPTION */}
-        <div className="flex items-center gap-4 mt-4 to-gray-400 flex-wrap">
-          <div className="flex items-center gap-2  cursor-pointer ">
-            <div className="flex items-center gap-4 mt-4 text-gray-400 flex-wrap">
-              <Image
-                src="/addimage.png"
-                alt="addPhoto"
-                width={20}
-                height={20}
-              />
-              Photo
-            </div>
+          <div className="">
+            <Image
+              src="/emoji.png"
+              alt=""
+              width={20}
+              height={20}
+              className="w-5 h-5 cursor-pointer self-end"
+            />
+            <AddPostButton />
           </div>
-
-          <div className="flex items-center gap-4 mt-4 text-gray-400 flex-wrap">
-            <Image src="/addVideo.png" alt="addPhoto" width={20} height={20} />
+        </form>
+        {/* POST OPTIONS */}
+        <div className="flex items-center gap-4 mt-4 text-gray-400 flex-wrap">
+          <CldUploadWidget
+            uploadPreset="social"
+            onSuccess={(result, { widget }) => {
+              setImg(result.info);
+              widget.close();
+            }}
+          >
+            {({ open }) => {
+              return (
+                <div
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => open()}
+                >
+                  <Image src="/addimage.png" alt="" width={20} height={20} />
+                  Photo
+                </div>
+              );
+            }}
+          </CldUploadWidget>
+          <div className="flex items-center gap-2 cursor-pointer">
+            <Image src="/addVideo.png" alt="" width={20} height={20} />
             Video
           </div>
-
-          <div className="flex items-center gap-4 mt-4 text-gray-400 flex-wrap">
-            <Image src="/poll.png" alt="addPhoto" width={20} height={20} />
+          <div className="flex items-center gap-2 cursor-pointer">
+            <Image src="/poll.png" alt="" width={20} height={20} />
             Poll
           </div>
-          <div className="flex items-center gap-4 mt-4 text-gray-400 flex-wrap">
-            <Image src="/addevent.png" alt="addevent" width={20} height={20} />
+          <div className="flex items-center gap-2 cursor-pointer">
+            <Image src="/addevent.png" alt="" width={20} height={20} />
             Event
           </div>
         </div>

@@ -1,6 +1,9 @@
 import Image from "next/image";
+import prisma from "../lib/client";
 
-const Stories = () => {
+const Stories = async () => {
+  const stories = await prisma.story;
+
   return (
     <div className="p-4 bg-white rounded-lg shadow-md overflow-scroll  text-xs scrollbar-hide">
       <div className="flex gap-8 w-max">
